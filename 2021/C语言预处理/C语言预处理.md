@@ -64,9 +64,43 @@ int add(int x,int y)
 
 ## 预处理指令#define
 
-## 宏和函数的对比
+### 宏和函数的对比
 
-## 预处理操作符#和##的介绍
+- 函数在调用的时候会有函数调用和返回的开销
+- 宏在预处理的时候就会完成替换，开销相对较小，没有函数的调用和返回的开销
+
+### 宏的缺点 
+
+- 宏不能调试
+- 长度较长的宏在代码规模上面没有优势
+- 宏与类型无关，不够严谨
+- 副作用的参数，不会影响函数的结果，但是宏会受到影响
+- 宏是不能实现递归的
+
+### 宏的优点
+
+- 可以传递类型
+
+  ```c
+  #include <stdio.h>
+  
+  #define MALLOC(num,type) (type*)malloc(num*sizeof(type))
+  
+  int main()
+  {
+  	int* p = (int*)malloc(10 * sizeof(int));
+  	int* pf = MALLOC(10, int);
+  
+  	return 0;
+  }
+  
+  ```
+
+  
+
+
+
+### 预处理操作符#和##的介绍
 
 ### 如何把参数添加到字符串中
 
@@ -111,28 +145,181 @@ int main()
 }
 ```
 
+### 带有副作用的宏参数
+
+```c
+#define MAX(X,Y) ((X)>(Y)?(X):(Y))
+
+int main()
+{
+	int a = 10;
+	int b = 11;
+	int max = MAX(a++, b++);
+	// 宏的参数是直接替换然后在计算
+	// int max=((a++)>(b++)?(a++):(b++))
+	
+	printf("%d\n", max);
+	printf("%d %d\n", a, b );
+	// max=12 a=11 b=13
+	return 0;
+}
+```
+
+### 预处理指令#undef
+
+#### 作用
+
+用于移除一个宏定义
+
+```c
+#include <stdio.h>
+#include <stdlib.h>
+#define MAX 100
+
+int main()
+{
+	printf("MAX = %d\n", MAX);
+#undef MAX
+	printf("MAX = %d\n", MAX);	//error: 'MAX' undeclared (first use in this function)
+    							//9 |  printf("MAX = %d\n", MAX);
+
+	return 0;
+}
+```
 
 
-## 命令定义
+
+## 命令行定义
+
+```c
+#include<stdio.h>
+
+int main()
+{
+        int arr[SZ] = {0};
+        int i=0;
+        for(i=0;i<SZ;i++)
+                arr[i]=i;
+        for(i=0;i<SZ;i++)
+                printf("%d ",arr[i]);
+        printf("\n");
+        return 0;
+}
+```
 
 
 
 
 
+## 文件包含#include
+
+### 本地包含 
+
+`#include "filename.h"`
+
+### 库函数
+
+`#include <filename.h>`
+
+```c
+#ifndef __TEST_H__
+#define __TEST_H__
+	int Add(int x, int y);
+#endif
 
 
-## 预处理指令#include
-
-
-
-
-
-## 预处理指令#undef
-
-
-
-
+#pragma once
+int Add(int x,int y);
+```
 
 
 
 ## 条件编译
+
+选择性的编译相关代码
+
+```c
+#include <stdio.h>
+#define DEBUG
+
+
+int main()
+{
+	int arr[10] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+	int i = 0;
+	for (i = 0; i < 10; i++)
+	{
+		arr[i] = 0;
+#ifdef DEBUG//如果DEBUG没有定义，则下述代码不参与编译
+		printf("%d ", arr[i]);
+#endif
+	}
+	printf("\n");
+
+	return 0;
+}
+```
+
+### 常见的条件编译指令
+
+```c
+//1.
+#if 常量表达式 //条件为真，下面的代码参与编译，否则不参与编译
+
+#endif
+
+//2.
+#if 常量表达式
+
+#elif
+
+#else
+
+#endif
+
+//3.判断是否被定义
+#if defined(symbol)
+#ifdef symbol
+
+#if !defined(symbol)
+#ifndef symbol
+
+//4.嵌套指令
+#if defined(OS_UNIX)
+	#ifdef OPTION1
+		unix_version_option1();
+	#endif
+	#ifdef OPTION2
+     	unix_version_option2();
+	#endif
+#elif defined(OS_MSDOS)
+	#ifdef OPTION2
+		msdos_version_option2();
+	#endif
+#endif
+```
+
+```c
+#include <stdio.h>
+#define DEBUG 0
+int main()
+{
+// // #if defined(DEBUG)
+// // 	printf("hehe\n");
+// // #endif
+// // #ifdef DEBUG
+// // 	printf("hehe\n");
+// // #endif
+// // 	return 0;
+// 	相反情况
+// #if !defined(DEBUG)
+// 	printf("hehe\n");
+// #endif
+// 	return 0;
+#ifndef DEBUG
+	printf("hehe\n");
+#endif
+	return 0;
+}
+```
+
