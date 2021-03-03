@@ -1,0 +1,5 @@
+Debug/
+/temp
+/.vscode
+*.exe
+*.out
